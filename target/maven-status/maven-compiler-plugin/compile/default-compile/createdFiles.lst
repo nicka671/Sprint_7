@@ -1,0 +1,10 @@
+courier\CourierClient.class
+courier\CourierCredentials.class
+order\OrderClient.class
+order\OrderColors.class
+courier\Courier.class
+courier\Generator.class
+courier\RestClient.class
+order\CreateOrderGenerator.class
+order\CreateOrder.class
+courier\GenerateCourier.class

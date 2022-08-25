@@ -1,24 +1,24 @@
 package order;
 
-import order.OrderColor;
-
 import java.util.ArrayList;
 
 public class CreateOrderGenerator
 {
 
-    private static String[] color;
+     static String[] colors;
 
-    public static CreateOrder createOrderWithParam(String[] color)
+
+    public static CreateOrder getDefault()
     {
-        return new CreateOrder("Nika",
-                               "Kurohtina",
-                                "Moscow, street",
-                             "Novogireevo",
-                                 "89161231234",
-                                12,
-                             "14.01.2002",
-                                        color);
+        return new CreateOrder(
+                "Nika",
+                "Kurohtina",
+                "Moscow, street",
+                5,
+                "+79161231234",
+                12,
+                "14-01-2002",
+                "Very useful comment",
+                colors);
     }
 }
-

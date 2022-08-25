@@ -4,8 +4,12 @@ import courier.Courier;
 
 public class GenerateCourier
 {
+    public static Courier getOrderListCourier() {
+        return new Courier("nehochyspat", "666361", "nika51");
+    }
+
     public static Courier getDefault() {
-        return new Courier("me33fefwww", "666361", "nika51");
+        return new Courier(Generator.generateNew(), "666361", "nika51");
     }
 
     public static Courier existedLogin() {

@@ -2,13 +2,15 @@ import courier.Courier;
 import courier.CourierClient;
 import courier.CourierCredentials;
 import courier.GenerateCourier;
+import io.qameta.allure.Description;
 import io.restassured.response.ValidatableResponse;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.After;
 
 import static org.apache.http.HttpStatus.*;
 import static org.junit.Assert.*;
+
+import io.qameta.allure.junit4.DisplayName;
 
 public class CreateCourierTest {
 
@@ -30,46 +32,45 @@ public class CreateCourierTest {
         courierWithExistedLogin1 = GenerateCourier.existedLogin1();
     }
 
-
-        @After
-        public void tearDown()
-        {
-            courierClient.delete(id);
-        }
-
+    @DisplayName("Check if courier can be created")
+    @Description("При создании курьера возвращается 201 True, а при последующем логине - непустой id")
     @Test
     public void courierCanBeCreatedTest()
     {
         ValidatableResponse response = courierClient.create(courier);
         int statusCode = response.extract().statusCode();
-        assertEquals("Status code is incorrect", SC_CREATED, statusCode);
+        assertEquals("Код состояния должен быть 201", SC_CREATED, statusCode);
         boolean isCreated = response.extract().path("ok");
-        assertTrue("Аккаунт не создан", isCreated);
+        assertTrue("Аккаунт курьера не создан", isCreated);
         ValidatableResponse loginResponse = courierClient.login(CourierCredentials.from(courier));
         int loginStatusCode = loginResponse.extract().statusCode();
-        assertEquals("Курьер не может залогиниться", SC_OK, loginStatusCode);
+        assertEquals("Код состояния должен быть 200", SC_OK, loginStatusCode);
         id = loginResponse.extract().path("id");
         assertNotNull("ID пустой", id);
-
+        courierClient.delete(id);
     }
 
+    @DisplayName("Courier without password")
+    @Description("При создании курьера без пароля возвращается 400 \"Недостаточно данных для создания учетной записи\"")
     @Test
     public void courierWithoutPassword()
     {
         ValidatableResponse response = courierClient.create(courierWithoutPassword);
         int statusCode = response.extract().statusCode();
-        assertEquals("Status code is incorrect", SC_BAD_REQUEST, statusCode);
+        assertEquals("Вернулся некорректный код состояния, должен быть 400", SC_BAD_REQUEST, statusCode);
         String message400 = response.extract().path("message");
-        assertEquals("Введите пароль", "Недостаточно данных для создания учетной записи", message400);
+        assertEquals("При создании учётной записи на сервер был передан пустой пароль", "Недостаточно данных для создания учетной записи", message400);
     }
 
+    @DisplayName("Courier With Existing Login")
+    @Description("При создании курьера с уже существующим логином возвращается 409 \"Этот логин уже используется. Попробуйте другой.\"")
     @Test
     public void courierWithExistingLogin()
     {
         ValidatableResponse response = courierClient.create(courierWithExistedLogin1);
         int statusCode = response.extract().statusCode();
-        assertEquals("Status code is incorrect", SC_CONFLICT, statusCode);
+        assertEquals("Вернулся некорректный код состояния, должен быть 409", SC_CONFLICT, statusCode);
         String message409 = response.extract().path("message");
-        assertEquals("Возможно создать клиентов с одинаковыми логинами", "Этот логин уже используется. Попробуйте другой.", message409);
+        assertEquals("Был создан новый курьер с уже существующим логином", "Этот логин уже используется. Попробуйте другой.", message409);
     }
 }

@@ -2,6 +2,8 @@ import courier.Courier;
 import courier.CourierClient;
 import courier.CourierCredentials;
 import courier.GenerateCourier;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import io.restassured.response.ValidatableResponse;
 import org.junit.After;
 import org.junit.Before;
@@ -14,7 +16,6 @@ public class LoginCourierTest
 {
     private Courier courier;
     private CourierClient courierClient;
-    private Courier courierWithoutPassword;
     private int id;
 
 
@@ -22,7 +23,6 @@ public class LoginCourierTest
     public void setUp()
     {
         courier = GenerateCourier.getDefault();
-        courierWithoutPassword = GenerateCourier.createWithoutPassword();
         courierClient = new CourierClient();
         courierClient.create(courier);
     }
@@ -32,39 +32,40 @@ public class LoginCourierTest
         courierClient.delete(id);
     }
 
-@Test
-        //курьер может авторизоваться; для авторизации нужно передать все обязательные поля; успешный запрос возвращает id.
-    public void LoginCourier()
-{
-
-    ValidatableResponse loginResponse = courierClient.login(CourierCredentials.from(courier));
-    int loginCode = loginResponse.extract().statusCode();
-    assertEquals("Status code is incorrect", SC_OK, loginCode);
-    id = loginResponse.extract().path("id");
-    assertTrue("id должен быть больше нуля!", id > 0);
-   }
-
+    @DisplayName("Login Courier")
+    @Description("В случае успешного логина сервер возвращает 200 и id > 0")
     @Test
-    public void LoginCourierWithInvalidLogin()
+    public void loginCourier()
     {
-
-        ValidatableResponse invalidLoginResponse = courierClient.login(CourierCredentials.credentialsWithInvalidLogin(courier));
-        int loginCode = invalidLoginResponse.extract().statusCode();
-        assertEquals("Status code is incorrect", SC_NOT_FOUND, loginCode);
-        String invalidLoginMessage = invalidLoginResponse.extract().path("message");
-        assertEquals("Аутентификация выполнена с неверными данными",  "Учетная запись не найдена", invalidLoginMessage);
+        ValidatableResponse loginResponse = courierClient.login(CourierCredentials.from(courier));
+        int loginCode = loginResponse.extract().statusCode();
+        assertEquals("Код состояния должен быть 200", SC_OK, loginCode);
+        id = loginResponse.extract().path("id");
+        assertTrue("id должен быть больше нуля", id > 0);
     }
 
-
+    @DisplayName("Login Courier With Invalid Login")
+    @Description("При логине с неверным паролем сервер возвращает 404 \"Учетная запись не найдена\"")
     @Test
-    public void LoginCourierWithoutPassword()
+    public void loginCourierWithInvalidLogin()
+    {
+        ValidatableResponse invalidLoginResponse = courierClient.login(CourierCredentials.credentialsWithInvalidLogin(courier));
+        int loginCode = invalidLoginResponse.extract().statusCode();
+        assertEquals("Код состояния должен быть 404", SC_NOT_FOUND, loginCode);
+        String invalidLoginMessage = invalidLoginResponse.extract().path("message");
+        assertEquals("Аутентификация выполнена с неверным логином",  "Учетная запись не найдена", invalidLoginMessage);
+    }
+
+    @DisplayName("Login Courier Without Password")
+    @Description("При логине без пароля сервер возвращает 400 \"Недостаточно данных для входа\"")
+    @Test
+    public void loginCourierWithoutPassword()
     {
 
         ValidatableResponse emptyPasswordResponse = courierClient.login(CourierCredentials.credentialsWithoutPassword(courier));
         int loginCode = emptyPasswordResponse.extract().statusCode();
-        assertEquals("Status code is incorrect", SC_BAD_REQUEST, loginCode);
+        assertEquals("Код состояния должен быть 400", SC_BAD_REQUEST, loginCode);
         String emptyPasswordMessage = emptyPasswordResponse.extract().path("message");
         assertEquals("Аутентификация выполнена без пароля",  "Недостаточно данных для входа", emptyPasswordMessage);
     }
 }
-
